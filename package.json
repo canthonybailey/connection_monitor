@@ -1,0 +1,26 @@
+{
+  "name": "connection_monitor",
+  "version": "0.1.0",
+  "description": "ISP Reliability Monitor",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/canthonybailey/connection_monitor.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/canthonybailey/connection_monitor/issues"
+  },
+  "homepage": "https://github.com/canthonybailey/connection_monitor#readme",
+  "dependencies": {
+    "elasticsearch": "^16.7.1",
+    "node-nmap": "^4.0.0",
+    "package.json": "^2.0.1",
+    "ping": "^0.2.3",
+    "speedtest-net": "^2.1.1"
+  }
+}
