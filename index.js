@@ -18,30 +18,36 @@ if (esutils.checkIndexExists(indexName) == false) {
     }
 }
 
+var probeNetwork = function () {
 
-// list of hosts to validate
-const source = os.hostname();
-var destinations = ['docsis-gateway', 'google.com', 'yahoo.com', "eeny", "miney", "bailey-nas", "pisumpmonitor", "EPSONBA9427", "EPSON78E3A4"];
+    // list of hosts to validate
+    const source = os.hostname();
+    var destinations = ['docsis-gateway', 'google.com', 'yahoo.com', "eeny", "miney", "bailey-nas", "pisumpmonitor", "EPSONBA9427", "EPSON78E3A4"];
 
-// Running with default config
-destinations.forEach((destination) => {
-    ping.promise.probe(destination)
-        .then(function (res) {
+    // Running with default config
+    destinations.forEach((destination) => {
+        ping.promise.probe(destination)
+            .then(function (res) {
 
-            let payload = {
-                'timestamp' : Date.now(),
-                'source' : source,
-                'destination' : destination,
-                'success' : res.alive,
-                'elapsedTime' : res.alive ? parseFloat(res.avg) : ""
-            };
+                let payload = {
+                    'timestamp': Date.now(),
+                    'source': source,
+                    'destination': destination,
+                    'success': res.alive,
+                    'elapsedTime': res.alive ? parseFloat(res.avg) : ""
+                };
 
-            console.log("sending to index", JSON.stringify(payload));
-            esutils.sendDataToIndex(payload, "network-ping-test", indexName)
-        })
-        .catch((err) => {
-            console.log(err)
-        })
-        .done();
-});
+                console.log("sending to index", JSON.stringify(payload));
+                esutils.sendDataToIndex(payload, "network-ping-test", indexName)
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+            .done();
+    });
 
+
+}
+
+
+setInterval(probeNetwork,10*60*1000)
