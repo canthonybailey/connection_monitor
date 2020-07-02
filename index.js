@@ -1,6 +1,7 @@
 'use strict'
 var esutils = require('./esutils.js');
 var ping = require('ping');
+var os = require('os');
 
 // setup connection to elasticsearch server
 if (esutils.checkServer() == false) {
@@ -17,14 +18,26 @@ if (esutils.checkIndexExists(indexName) == false) {
     }
 }
 
-var hosts = ['docsis-gateway', 'google.com', 'yahoo.com', "eeny", "miney", "bailey-nas", "pisumpmonitor", "EPSONBA9427", "EPSON78E3A4"];
+
+// list of hosts to validate
+const source = os.hostname();
+var destinations = ['docsis-gateway', 'google.com', 'yahoo.com', "eeny", "miney", "bailey-nas", "pisumpmonitor", "EPSONBA9427", "EPSON78E3A4"];
 
 // Running with default config
-hosts.forEach((host) => {
-    ping.promise.probe(host)
+destinations.forEach((destination) => {
+    ping.promise.probe(destination)
         .then(function (res) {
-            console.log("sending to index", res);
-            esutils.sendDataToIndex(res, "network-ping-test", indexName)
+
+            let payload = {
+                'timestamp' : Date.now(),
+                'source' : source,
+                'destination' : destination,
+                'success' : res.alive,
+                'elapsedTime' : res.alive ? parseFloat(res.avg) : ""
+            };
+
+            console.log("sending to index", JSON.stringify(payload));
+            esutils.sendDataToIndex(payload, "network-ping-test", indexName)
         })
         .catch((err) => {
             console.log(err)

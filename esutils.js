@@ -71,7 +71,7 @@ var sendDataToIndex = async function (doc, docType, indexName) {
         'body': doc
     })
         .then((response) => {
-            console.log("sendDataToIndex OK", response);
+            console.log("sendDataToIndex OK: _id=", JSON.stringify(response._id));
         })
         .catch((error) => {
             console.log("error createIndex", error)
