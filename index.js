@@ -10,13 +10,45 @@ if (esutils.checkServer() == false) {
 }
 
 // create index if needed
-const indexName = "network"
-if (esutils.checkIndexExists(indexName) == false) {
-    if (esutils.createIndex(index) == false) {
-        console.error("could not create index", indexName)
-        exit(1)
+let indexName = "network"
+let indexConfig = {
+    "mappings": {
+      "_doc": {
+        "properties": {
+          "destination": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "elapsedTime": {
+            "type": "float"
+          },
+          "source": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "success": {
+            "type": "long"
+          },
+          "timestamp": {
+            "type": "date",
+            "format": "epoch_millis"
+          }
+        }
+      }
     }
-}
+  }
+
+esutils.createIndex(indexName, indexConfig);
 
 var probeNetwork = function () {
 
@@ -33,7 +65,7 @@ var probeNetwork = function () {
                     'timestamp': Date.now(),
                     'source': source,
                     'destination': destination,
-                    'success': res.alive,
+                    'success': res.alive ? 1: 0,
                     'elapsedTime': res.alive ? parseFloat(res.avg) : ""
                 };
 
@@ -49,5 +81,8 @@ var probeNetwork = function () {
 
 }
 
-
-setInterval(probeNetwork,10*60*1000)
+//TODO recover from error, reset client
+//TODO logging
+//TODO run as service
+const pollSeconds = 10 // 10*60
+setInterval(probeNetwork,pollSeconds*1000)
