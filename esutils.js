@@ -37,7 +37,7 @@ var checkIndexExists = async function (indexName) {
         { "index": indexName })
         .then((response) => {
             console.log("checkIndexExists OK", response);
-            result = true
+            result = response
         })
         .catch((error) => {
             console.log("checkIndexExists Error", error)
@@ -46,19 +46,28 @@ var checkIndexExists = async function (indexName) {
     return (result)
 }
 
-var createIndex = async function (indexName) {
+var createIndex = async function (indexName, indexConfig) {
     let result = false
 
+    let exists = await checkIndexExists(indexName);
+    if (exists) { result = true; return (result) }
+    console.log("after await checkIndexExists", indexName, exists)
+
+
     await client.indices.create(
-        { "index": indexName })
+        {
+            "index": indexName,
+            "body": indexConfig
+        })
         .then((response) => {
             console.log("createIndex OK", response);
             result = true
         })
         .catch((error) => {
-            console.log("error createIndex", error)
+            console.log("error createIndex", indexName, error)
         })
 
+    console.log("after await createIndex", indexName, result)
     return (result)
 }
 
@@ -88,15 +97,20 @@ module.exports = {
 };
 
 
+var testRun = async function () {
+    let indexName = "test"
+    let indexConfig = {}
+    await checkServer()
+    await createIndex(indexName, indexConfig)
+    await sendDataToIndex({ 'key': 'value' }, "network-ping-test", indexName)
+    return (true)
+}
 
 //  test if run directly
 if (require.main === module) {
     console.log('called directly');
-    let index = "test"
-    checkServer()
-    let exists = checkIndexExists(index)
-    if (exists == false) { createIndex(index) }
-    sendDataToIndex({ 'key': 'value' }, "network-ping-test", index)
+    testRun()
+
 }
 
 
