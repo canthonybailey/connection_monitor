@@ -84,5 +84,5 @@ var probeNetwork = function () {
 //TODO recover from error, reset client
 //TODO logging
 //TODO run as service
-const pollSeconds = 10 // 10*60
+const pollSeconds =  10*60
 setInterval(probeNetwork,pollSeconds*1000)
