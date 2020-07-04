@@ -1,0 +1,9 @@
+[Unit]
+Description=ISP Connection Monitor
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/node /home/tony/connection_monitor/index.js
+
+[Install]
+WantedBy=multi-user.target
