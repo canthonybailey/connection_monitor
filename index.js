@@ -1,5 +1,6 @@
 'use strict'
 var esutils = require('./esutils.js');
+var speed = require('./speed.js');
 var ping = require('ping');
 var os = require('os');
 
@@ -86,3 +87,7 @@ var probeNetwork = function () {
 //TODO run as service
 const pollSeconds =  10*60
 setInterval(probeNetwork,pollSeconds*1000)
+
+
+const speedTestPollSeconds = 1*60
+//setInterval(speed.asyncSpeedTest, speedTestPollSeconds)
