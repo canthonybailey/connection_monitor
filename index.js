@@ -54,20 +54,37 @@ esutils.createIndex(indexName, indexConfig);
 let connectionType = function (device) {
   let connection = "unknown"
 
-  switch (device) {
+  switch (device.toLowerCase()) {
     case 'docsis-gateway':
     case 'miney':
     case 'eeny':
     case 'bailey-nas':
+    case 'apple-tv':
+    case 'android-1f4e9150981d779': //living-room tv
 
       connection = 'wired'
       break;
 
     case 'pisumpmonitor':
-    case 'EPSONBA9427':
-    case 'EPSON78E3A4':
+    case 'epsonba9427':
+    case 'epson78e3a4':
+    case 'portal':
+    case 'chromecast':
+    case 'chromecast-751':
+    case 'alexa':
 
       connection = 'wifi'
+      break;
+
+    case 'tonys-s8':
+    case 'tonys-ipad':
+    case 'patricias-ipad2':
+    case 'patricias-iphone':
+    case 'zoes-phone':
+    case 'allisons-ipad':
+    case 'nates-iphone':
+
+      connection = 'portable'
       break;
 
     default:
@@ -80,14 +97,22 @@ let connectionType = function (device) {
 var probeNetwork = function (testMode) {
 
   // list of hosts to validate
-  const source = os.hostname();
-  var destinations = ['docsis-gateway', 'google.com', 'yahoo.com', "eeny", "miney", "bailey-nas", "pisumpmonitor", "EPSONBA9427", "EPSON78E3A4"];
-
+  const source = os.hostname().toLowerCase();
+  var destinations = ['docsis-gateway', 'google.com', 'yahoo.com', 
+                      "eeny", "miney", "bailey-nas", 'apple-tv', 'android-1f4e9150981d779', 'chromecast', 'chromecast-751',
+                      "pisumpmonitor", "epsonba9427", "epson78e3a4",  
+                      'tonys-s8', 'tonys-ipad', 'patricas-ipad2', 'patricas-iphone', 'zoes-phone'];
+  var cfg = {
+    timeout: 10,
+    extra: ['-c', '2'],
+  };
   // Running with default config
   let testTime = Date.now()
   destinations.forEach((destination) => {
-    ping.promise.probe(destination)
+    ping.promise.probe(destination, cfg)
       .then(function (res) {
+
+        destination = destination.toLowerCase()
 
         let payload = {
           'timestamp': testTime,
@@ -100,7 +125,7 @@ var probeNetwork = function (testMode) {
         };
 
         console.log("sending to index", JSON.stringify(payload));
-        if(testMode == false){
+        if (testMode == false) {
           esutils.sendDataToIndex(payload, "network-ping-test", indexName)
         }
       })
@@ -117,9 +142,14 @@ var probeNetwork = function (testMode) {
 //TODO logging
 //TODO run as service
 const testMode = false
-const pollSeconds = testMode ? 10 : 10 * 60
+const oneShot = false
 
-setInterval(probe => probeNetwork(testMode), pollSeconds * 1000)
+if (oneShot==true) {
+  probeNetwork(testMode)
+} else {
+  const pollSeconds = testMode ? 10 : 10 * 60
+  setInterval(probe => probeNetwork(testMode), pollSeconds * 1000)  
+}
 
 
 const speedTestPollSeconds = 20
