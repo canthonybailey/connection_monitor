@@ -78,8 +78,8 @@ let connectionType = function (device) {
 
     case 'tonys-s8':
     case 'tonys-ipad':
-    case 'patricias-ipad2':
-    case 'patricias-iphone':
+    case 'patricas-ipad2':
+    case 'patricas-iphone':
     case 'zoes-phone':
     case 'allisons-ipad':
     case 'nates-iphone':
