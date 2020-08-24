@@ -4,12 +4,6 @@ var speed = require('./speed.js');
 var ping = require('ping');
 var os = require('os');
 
-// setup connection to elasticsearch server
-if (esutils.checkServer() == false) {
-  console.error("can not reach elasticsearch server")
-  exit(1)
-}
-
 // create index if needed
 let indexName = "network"
 let indexConfig = {
@@ -49,7 +43,17 @@ let indexConfig = {
   }
 }
 
-esutils.createIndex(indexName, indexConfig);
+let setupConnection = async function () {
+
+  // setup connection to elasticsearch server
+  if (esutils.checkServer() == false) {
+    console.error("can not reach elasticsearch server")
+    exit(1)
+  }
+
+  esutils.createIndex(indexName, indexConfig);
+}
+
 
 let connectionType = function (device) {
   let connection = "unknown"
@@ -94,47 +98,60 @@ let connectionType = function (device) {
   return (connection)
 }
 
-var probeNetwork = function (testMode) {
+
+let sendProbeResults = async function (source, destination, testTime, res) {
+  destination = destination.toLowerCase()
+
+  let payload = {
+    'timestamp': testTime,
+    'source': source,
+    'sourceType': connectionType(source),
+    'destination': destination,
+    'destinationType': connectionType(destination),
+    'success': res.alive ? 1 : 0,
+    'elapsedTime': res.alive ? parseFloat(res.avg) : ""
+  };
+
+  let sendResults = !testMode
+
+  if (testMode == false) {
+    sendResults = await esutils.sendDataToIndex(payload, "network-ping-test", indexName)
+      .catch((err) => {
+        console.error("caught error", err)
+        return ("send error")
+      })
+  }
+
+  console.log("sent to index", source, destination, res.alive, res.avg, sendResults._id);
+
+}
+
+
+let probeNetwork = async function (testMode) {
+
+  // get sourcename
+  const source = os.hostname().toLowerCase();
 
   // list of hosts to validate
-  const source = os.hostname().toLowerCase();
-  var destinations = ['docsis-gateway', 'google.com', 'yahoo.com', 
-                      "eeny", "miney", "bailey-nas", 'apple-tv', 'android-1f4e9150981d779', 'chromecast', 'chromecast-751',
-                      "pisumpmonitor", "epsonba9427", "epson78e3a4",  
-                      'tonys-s8', 'tonys-ipad', 'patricas-ipad2', 'patricas-iphone', 'zoes-phone'];
-  var cfg = {
-    timeout: 10,
-    extra: ['-c', '2'],
-  };
-  // Running with default config
+  var destinations = ['docsis-gateway', 'google.com', 'yahoo.com',
+    "eeny", "miney", "bailey-nas", 'apple-tv', 'android-1f4e9150981d779', 'chromecast', 'chromecast-751',
+    "pisumpmonitor", "epsonba9427", "epson78e3a4",
+    'tonys-s8', 'tonys-ipad', 'patricas-ipad2', 'patricas-iphone', 'zoes-phone'];
+
+  // check elk server status
+  await setupConnection()
+
+  // use common time to align test results
   let testTime = Date.now()
-  destinations.forEach((destination) => {
-    ping.promise.probe(destination, cfg)
-      .then(function (res) {
 
-        destination = destination.toLowerCase()
+  for (let destination of destinations) {
+    let pingResult = await ping.promise.probe(destination)
+      .catch((err) => { console.error(err) })
+    let sendResult = await sendProbeResults(source, destination, testTime, pingResult)
+      .catch((err) => { console.error(err) })
 
-        let payload = {
-          'timestamp': testTime,
-          'source': source,
-          'sourceType': connectionType(source),
-          'destination': destination,
-          'destinationType': connectionType(destination),
-          'success': res.alive ? 1 : 0,
-          'elapsedTime': res.alive ? parseFloat(res.avg) : ""
-        };
-
-        console.log("sending to index", JSON.stringify(payload));
-        if (testMode == false) {
-          esutils.sendDataToIndex(payload, "network-ping-test", indexName)
-        }
-      })
-      .catch((err) => {
-        console.log(err)
-      })
-      .done();
-  });
-
+    //console.log("test", pingResult, sendResult)
+  }
 
 }
 
@@ -142,13 +159,13 @@ var probeNetwork = function (testMode) {
 //TODO logging
 //TODO run as service
 const testMode = false
-const oneShot = false
+const oneShot = true
 
-if (oneShot==true) {
+if (oneShot == true) {
   probeNetwork(testMode)
 } else {
   const pollSeconds = testMode ? 10 : 10 * 60
-  setInterval(probe => probeNetwork(testMode), pollSeconds * 1000)  
+  setInterval(probe => probeNetwork(testMode), pollSeconds * 1000)
 }
 
 

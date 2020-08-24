@@ -72,6 +72,7 @@ var createIndex = async function (indexName, indexConfig) {
 }
 
 var sendDataToIndex = async function (doc, docType, indexName) {
+    let sendResponse
 
     await client.index({
         'index': indexName,
@@ -80,13 +81,14 @@ var sendDataToIndex = async function (doc, docType, indexName) {
         'body': doc
     })
         .then((response) => {
-            console.log("sendDataToIndex OK: _id=", JSON.stringify(response._id));
+            //console.log("sendDataToIndex OK: _id=", JSON.stringify(response._id))
+            sendResponse = response;
         })
         .catch((error) => {
-            console.log("error createIndex", error)
+            console.log("error sendDataToIndex", error)
         })
 
-    return
+    return (sendResponse)
 }
 
 module.exports = {
