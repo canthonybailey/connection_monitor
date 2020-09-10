@@ -166,8 +166,8 @@ let probeNetwork = async function (testMode) {
 //TODO recover from error, reset client
 //TODO logging
 //TODO run as service
-const testMode = true
-const oneShot = true
+const testMode = false
+const oneShot = false
 
 if (oneShot == true) {
   probeNetwork(testMode)
