@@ -109,15 +109,11 @@ let connectionType = function (device) {
 let sendProbeResults = async function (source, destination, testTime, res) {
   destination = destination.toLowerCase()
 
-  if (connectionType(destination) == "chromebook") {
-    destination = "cb-" + destination
-  }
-
   let payload = {
     'timestamp': testTime,
     'source': source,
     'sourceType': connectionType(source),
-    'destination': destination,
+    'destination': (connectionType(destination) == "chromebook") ? "cb-" + destination : destination,
     'destinationType': connectionType(destination),
     'success': res.alive ? 1 : 0,
     'elapsedTime': res.alive ? parseFloat(res.avg) : ""
@@ -170,8 +166,8 @@ let probeNetwork = async function (testMode) {
 //TODO recover from error, reset client
 //TODO logging
 //TODO run as service
-const testMode = false
-const oneShot = false
+const testMode = true
+const oneShot = true
 
 if (oneShot == true) {
   probeNetwork(testMode)
