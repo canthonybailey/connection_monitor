@@ -9,6 +9,11 @@ Node:
 Service definition needs to be setup in systemd services (beware inconsistent use of - and _)
   sudo ln ~/connection_monitor/connection_monitor.service /etc/systemd/system/connection_monitor.service
 
-  systemctl daemon-reload
-  systemctl start|stop|restart connetion_monitor
-  systemctl status connection_monitor
+  mkdir ~/.config/systemd/user
+  ln ~/connection_monitor/connection_monitor.service ~/.config/systemd/user/connection_monitor.service
+  
+
+  systemctl --user daemon-reload
+  systemctl --user enable connection_monitor
+  systemctl --user start|stop|restart connection_monitor
+  systemctl --user status connection_monitor
