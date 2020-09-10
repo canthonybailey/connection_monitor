@@ -69,6 +69,13 @@ let connectionType = function (device) {
       connection = 'wired'
       break;
 
+    case '10.0.0.238':  // alli chromebook
+    case '10.0.0.103':  // nate chromebook
+    case '10.0.0.154':  // zoe chromebook
+
+      connection = 'chromebook'
+      break;
+
     case 'pisumpmonitor':
     case 'epsonba9427':
     case 'epson78e3a4':
@@ -101,6 +108,10 @@ let connectionType = function (device) {
 
 let sendProbeResults = async function (source, destination, testTime, res) {
   destination = destination.toLowerCase()
+
+  if (connectionType(destination) == "chromebook") {
+    destination = "cb-" + destination
+  }
 
   let payload = {
     'timestamp': testTime,
@@ -136,7 +147,8 @@ let probeNetwork = async function (testMode) {
   var destinations = ['docsis-gateway', 'google.com', 'yahoo.com',
     "eeny", "miney", "bailey-nas", 'apple-tv', 'android-1f4e9150981d779', 'chromecast', 'chromecast-751',
     "pisumpmonitor", "epsonba9427", "epson78e3a4",
-    'tonys-s8', 'tonys-ipad', 'patricas-ipad2', 'patricas-iphone', 'zoes-phone'];
+    'tonys-s8', 'tonys-ipad', 'patricas-ipad2', 'patricas-iphone', 'zoes-phone',
+    "10.0.0.238", "10.0.0.103", "10.0.0.154"];
 
   // check elk server status
   await setupConnection()
@@ -159,7 +171,7 @@ let probeNetwork = async function (testMode) {
 //TODO logging
 //TODO run as service
 const testMode = false
-const oneShot = true
+const oneShot = false
 
 if (oneShot == true) {
   probeNetwork(testMode)
